@@ -28,14 +28,19 @@ h = (f.g)
 
 iter1 :: Int -> (a->a) -> a -> a
 
-iter1 n f s = foldl' (\x y -> f x) s (take n [1..] :: [Int])
+iter1 n func s = foldl' (\x _ -> func x) s (take n [1..] :: [Int])
+
+benchIter1 :: Val -> Val
 benchIter1 = iter1 benchN h 
 
 iter2 :: Int -> (a->a) -> a -> a
-iter2 0 f !v = f v 
-iter2 !n !f !s = iter2 (n-1) f (f s)
+iter2 0 func !v = func v 
+iter2 !n func !s = iter2 (n-1) func (func s)
+
+benchIter2 :: Val -> Val
 benchIter2 = iter2 benchN h
 
+benchIter3 :: Val -> V.Vector Val
 benchIter3 = V.iterateN benchN h  
 
 fd :: (Double, Double, Double) -> (Double, Double, Double)
@@ -45,9 +50,12 @@ gd (x,y,z) = (x+0.01, y+0.1, z)
 hd :: (Double, Double, Double) -> (Double, Double, Double)
 hd = fd . gd
 
+benchIter4 :: (Double, Double, Double)
+                    -> V.Vector (Double, Double, Double)
 benchIter4 = V.iterateN benchN hd 
 
-mainmain = do 
+testmain :: IO ()
+testmain = do 
   let result = iter1 benchN h (Val 0.0 0.0 0.0)
   print result 
   let v = V.iterateN benchN h  (Val 0.0 0.0 0.0)
@@ -61,6 +69,7 @@ benchN = 500000
 benchS :: Val
 benchS = Val 0.0 0.0 0.0
 
+main::IO()
 main = defaultMain  
   [ bench "iter1 folding " $ nf benchIter1 benchS
   , bench "iter2 recursing" $ nf benchIter2 benchS
